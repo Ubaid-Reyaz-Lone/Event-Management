@@ -25,38 +25,11 @@ Develop a secure web-based system for managing events with proper role-based acc
   - User credentials are securely stored with encryption (using bcrypt or similar hashing mechanisms).
   - Secure API endpoints with input validation and prevention of common vulnerabilities (SQL Injection, XSS).
 
-### 📅 **Event Management**
-
-- **Admin**:
-  - Create, edit, delete events with details like name, description, date, time, venue, and registration limit.
-  - View and export participant lists (CSV format).
-  - Close event registration manually.
-
-- **User**:
-  - View available events.
-  - Register for events within the event's registration limit.
-
-### 🗂️ **Database Schema**
-
-- **Users Table**: Stores user details, roles, and hashed passwords.
-- **Events Table**: Stores event details like name, description, date, time, venue, and registration limit.
-- **Registrations Table**: Links users to events they are registered for.
-
----
-
-## **Tech Stack**
-
-- **Backend**: Flask (Python)
-- **Frontend**: React (JavaScript)
-- **Database**: MSSQL
-- **Authentication**: bcrypt (for hashed passwords)
-
----
-
-## 🚀 **How to Run Locally**
-
-### 1. **Clone the Repository**
-
-```bash
-git clone https://github.com/your-username/event-management-system.git
-cd event-management-system
+- **JWT Authentication**:
+  - **JSON Web Tokens (JWT)** are used for user authentication and session management.
+  - After logging in, users receive a JWT token that they must include in the `Authorization` header for accessing protected API endpoints.
+  - The backend verifies the JWT for every request to ensure security and proper access control.
+  
+  Example of Authorization Header:
+  ```http
+  Authorization: Bearer <your-jwt-token>
