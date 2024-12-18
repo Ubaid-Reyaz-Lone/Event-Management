@@ -76,7 +76,7 @@ function App() {
           />
 
           {/* Redirect */}
-          <Route path="/" element={<Navigate to="/events" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

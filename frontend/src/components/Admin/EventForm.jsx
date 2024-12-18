@@ -21,17 +21,16 @@ const EventForm = ({ event, setEditEvent, refreshEvents }) => {
 
     try {
       if (formData.id) {
-        // Update existing event
-        await axiosInstance.put(`/api/events/${formData.id}`, formData); // Replace with actual API
+        await axiosInstance.put(`/api/events/${formData.id}`, formData);
         alert('Event updated successfully!');
       } else {
-        // Create new event
-        await axiosInstance.post('/api/events', formData); // Replace with actual API
+        
+        await axiosInstance.post('/api/events', formData);
         alert('Event created successfully!');
       }
 
       refreshEvents();
-      setEditEvent(null); // Close the form
+      setEditEvent(null);
     } catch (error) {
       console.error('Error saving event:', error);
       alert('Failed to save event.');

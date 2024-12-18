@@ -11,7 +11,7 @@ const Reports = () => {
         // Fetch the statistics from the backend API
         const fetchStats = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/dashboard/stats', {
+                const response = await fetch('https://4341-2409-40d5-1009-93b4-fc74-862f-2446-9e8c.ngrok-free.app/api/dashboard/stats', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('access_token')}`

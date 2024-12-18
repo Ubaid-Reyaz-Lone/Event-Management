@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL:
+    "https://4341-2409-40d5-1009-93b4-fc74-862f-2446-9e8c.ngrok-free.app/api",
   timeout: 10000,
 });
 

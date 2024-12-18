@@ -23,9 +23,7 @@ const Login = () => {
       setLoginError("");
       const response = await authService.login(data.username, data.password);
 
-      // Store token and user info
       login(response.access_token, response.user_id, response.role);
-      // Redirect based on role
       if (response.role === "admin") {
         navigate("/admin/dashboard");
       } else {
@@ -50,12 +48,10 @@ const Login = () => {
     };
     try {
       const response = await authService.register(registerPayload);
-      // Handle successful registration
       setIsRegistrationModalOpen(false);
       alert("Register Successfull");
       navigate("/login");
     } catch (error) {
-      // Handle registration failure
       setLoginError(error.message || "Registration failed");
     }
   };

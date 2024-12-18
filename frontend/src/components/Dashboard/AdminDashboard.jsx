@@ -7,11 +7,10 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState([]);
   const [editEvent, setEditEvent] = useState(null);
 
-  // Fetch events from API
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axiosInstance.get('/api/events'); // Replace with actual API
+        const response = await axiosInstance.get('/api/events');
         setEvents(response.data);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -23,9 +22,8 @@ const AdminDashboard = () => {
   const closeEvent = async (eventId) => {
     try {
         const response = await axiosInstance.put(`api/event/${eventId}/close`);
-        const data = response.data; // Get the response data from the axios response
-        alert(data.message); // Alert with success message
-        // Update the local state to reflect the change
+        const data = response.data;
+        alert(data.message); 
         setEvents(events.map(event =>
             event.id === eventId ? { ...event, status: 'closed' } : event
         ));
@@ -33,11 +31,10 @@ const AdminDashboard = () => {
         console.error('Error closing event:', error);
     }
 };
-  // Handle Delete
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        await axiosInstance.delete(`/api/events/${id}`); // Replace with actual API
+        await axiosInstance.delete(`/api/events/${id}`);
         setEvents(events.filter((event) => event.id !== id));
         alert('Event deleted successfully!');
       } catch (error) {
@@ -55,7 +52,7 @@ const AdminDashboard = () => {
           <h1 className="text-2xl font-bold">Manage Events</h1>
           <button
             className="bg-green-500 text-white px-4 py-2 rounded"
-            onClick={() => setEditEvent({})} // Open the form for creating a new event
+            onClick={() => setEditEvent({})} 
           >
             Create Event
           </button>
@@ -84,7 +81,7 @@ const AdminDashboard = () => {
                 <td className="py-2 px-4 border-b">
                   <button
                     className="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-                    onClick={() => setEditEvent(event)} // Pass the event to the form
+                    onClick={() => setEditEvent(event)}
                   >
                     Edit
                   </button>

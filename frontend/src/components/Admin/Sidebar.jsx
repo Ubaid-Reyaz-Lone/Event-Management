@@ -26,16 +26,7 @@ const Sidebar = () => {
             Reports
           </NavLink>
         </li>
-        <li>
-          <NavLink
-            to="/admin/settings"
-            className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'}`
-            }
-          >
-            Settings
-          </NavLink>
-        </li>
+       
       </ul>
     </div>
   );
