@@ -3,7 +3,6 @@ import axiosInstance from "../services/authServices";
 
 const Events = () => {
   const [events, setEvents] = useState([]);
-  // Fetch data from the API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -17,7 +16,6 @@ const Events = () => {
     fetchData();
   }, []);
 
-  // Handle registration
   const handleRegister = async (eventId) => {
     debugger
     const userResponse = prompt("Are you sure you want to register? Type 'yes' to confirm.");

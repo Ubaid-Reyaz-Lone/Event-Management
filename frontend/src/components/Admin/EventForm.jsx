@@ -10,25 +10,20 @@ const EventForm = ({ event, setEditEvent, refreshEvents }) => {
     registration_limit: '',
     subject: ''
   });
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       if (formData.id) {
         await axiosInstance.put(`/api/events/${formData.id}`, formData);
         alert('Event updated successfully!');
       } else {
-        
         await axiosInstance.post('/api/events', formData);
         alert('Event created successfully!');
       }
-
       refreshEvents();
       setEditEvent(null);
     } catch (error) {
@@ -36,7 +31,6 @@ const EventForm = ({ event, setEditEvent, refreshEvents }) => {
       alert('Failed to save event.');
     }
   };
-
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded shadow-lg w-1/3">
@@ -129,5 +123,4 @@ const EventForm = ({ event, setEditEvent, refreshEvents }) => {
     </div>
   );
 };
-
 export default EventForm;

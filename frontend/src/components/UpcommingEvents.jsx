@@ -7,7 +7,7 @@ const UpcomingEvents = () => {
   useEffect(() => {
     const fetchUpcomingEvents = async () => {
       try {
-        const response = await axiosInstance.get("api/events/upcoming"); // Replace with your actual endpoint
+        const response = await axiosInstance.get("api/events/upcoming");
         const futureEvents = response.data.filter(
           (event) => new Date(event.date) > new Date()
         );

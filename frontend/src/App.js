@@ -15,6 +15,7 @@ import AdminDashboard from "./components/Dashboard/AdminDashboard";
 import UserDashboard from "./components/Dashboard/UserDashboard";
 import PrivateRoute from "./components/Auth/PrivateRoute";
 import Reports from "./components/Admin/Reports";
+
 function App() {
   return (
     <AuthProvider>
@@ -26,7 +27,7 @@ function App() {
 
           {/* Protected Routes */}
           <Route
-            path="/dashboard/UserDashboard"
+            path="/events"
             element={
               <PrivateRoute>
                 <EventList />
@@ -65,7 +66,6 @@ function App() {
               </PrivateRoute>
             }
           />
-
           <Route
             path="/user/dashboard"
             element={
@@ -75,8 +75,9 @@ function App() {
             }
           />
 
-          {/* Redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

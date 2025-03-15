@@ -5,7 +5,28 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from datetime import datetime, timedelta
 import pyodbc
 from flask_cors import CORS
+import jwt
+import datetime
 
+SECRET_KEY = "your_secret_key"
+
+def encrypt_url(data):
+    return jwt.encode(data, SECRET_KEY, algorithm="HS256")
+
+def decrypt_url(token):
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError:
+        return "Expired Token"
+    except jwt.DecodeError:
+        return "Invalid Token"
+
+data = {"email": "test@example.com", "timestamp": str(datetime.datetime.utcnow())}
+token = encrypt_url(data)
+print("Encrypted Token:", token)
+
+decoded = decrypt_url(token)
+#print("Decrypted Data:", decoded)
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'my-fixed-secret-key'
@@ -13,7 +34,6 @@ app.config['JWT_SECRET_KEY'] = 'my-fixed-jwt-secret-key'
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=22)
 
 CORS(app, resources={r"/api/*": {"origins": "*"}})
-
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
 
@@ -21,54 +41,66 @@ DATABASE_CONNECTION_STRING = 'Driver={ODBC Driver 17 for SQL Server};Server=UBAI
 
 def get_db_connection():
     return pyodbc.connect(DATABASE_CONNECTION_STRING)
-
 @app.route('/')
 def home():
     return "Hello, World! Event Management API is running!"
-
-@app.route('/api/auth/register', methods=['POST'])
-def register():
-    data = request.json
-
-    if not data or not all(k in data for k in ('username', 'email', 'password')):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-
+#
+@app.route('/api/users', methods=['GET'])
+@jwt_required()
+def get_all_users():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        cursor.execute("SELECT id, username, email, role FROM users")
+        users = cursor.fetchall()
+        users_list = [
+            {
+                'id': user[0],
+                'username': user[1],
+                'email': user[2],
+                'role': user[3]
+            }
+            for user in users
+        ]
+        conn.close()
+        return jsonify(users_list), 200
 
+    except pyodbc.Error as e:
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+#
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    data = request.json
+    if not data or not all(k in data for k in ('username', 'email', 'password')):
+        return jsonify({"error": "Missing required fields"}), 400
+    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
         cursor.execute("SELECT id FROM users WHERE username = ? OR email = ?", (data['username'], data['email']))
         if cursor.fetchone():
             return jsonify({"error": "Username or email already exists"}), 409
-
         cursor.execute(
             "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
             (data['username'], data['email'], hashed_password, 'user')
         )
         conn.commit()
     except pyodbc.Error as e:
-        return jsonify({"error": f"Database error: {str(e)}"}), 500
+        return jsonify({"error": "Database error: {str(e)}"}), 500
     finally:
         conn.close()
-
     return jsonify({"message": "User registered successfully"}), 201
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.json
-
     if not data or not all(k in data for k in ('username', 'password')):
         return jsonify({"error": "Missing username or password"}), 400
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT id, password_hash, role FROM users WHERE username = ?", (data['username'],))
         user = cursor.fetchone()
-
         if user and bcrypt.check_password_hash(user[1], data['password']):
             access_token = create_access_token(identity=str(user[0]))
             return jsonify({
@@ -87,14 +119,11 @@ def login():
 @jwt_required()
 def list_events():
     status = request.args.get('status', 'open')
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT id, name, description, date, venue, registration_limit, status FROM events WHERE status = ?", (status,))
         events = cursor.fetchall()
-
         result = []
         for event in events:
             cursor.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event[0],))
@@ -121,47 +150,39 @@ def list_events():
 @jwt_required()
 def create_event():
     current_user_id = get_jwt_identity()
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT role FROM users WHERE id = ?", (current_user_id,))
         user = cursor.fetchone()
         if not user or user[0] != 'admin':
             return jsonify({"error": "Unauthorized"}), 403
-
         data = request.json
         required_fields = ['name', 'description', 'date', 'venue', 'registration_limit']
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required event fields"}), 400
-
         cursor.execute(
             "INSERT INTO events (name, description, date, venue, registration_limit, status) VALUES (?, ?, ?, ?, ?, ?)",
             (data['name'], data['description'], datetime.fromisoformat(data['date']), data['venue'], data['registration_limit'], 'open')
         )
         conn.commit()
-
         return jsonify({"message": "Event created successfully"}), 201
     except pyodbc.Error as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
     finally:
         conn.close()
-
+        
 @app.route('/api/events/<int:event_id>/register', methods=['POST'])
 @jwt_required()
 def register_for_event(event_id):
     current_user_id = get_jwt_identity()
-
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT registration_limit FROM events WHERE id = ?", (event_id,))
         event = cursor.fetchone()
         if not event:
             return jsonify({"error": "Event not found"}), 404
-
         cursor.execute("SELECT COUNT(*) FROM registrations WHERE event_id = ?", (event_id,))
         current_registrations = cursor.fetchone()[0]
         if current_registrations >= event[0]:
@@ -189,17 +210,14 @@ def edit_event(event_id):
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-
         cursor.execute("SELECT role FROM users WHERE id = ?", (current_user_id,))
         user = cursor.fetchone()
         if not user or user[0] != 'admin':
             return jsonify({"error": "Unauthorized"}), 403
-
         data = request.json
         required_fields = ['name', 'description', 'date', 'venue', 'registration_limit', 'status']
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Missing required fields"}), 400
-
         cursor.execute(""" 
             UPDATE events
             SET name = ?, description = ?, date = ?, venue = ?, registration_limit = ?, status = ?
@@ -289,7 +307,6 @@ def close_event(event_id):
         cursor = conn.cursor()
 
         cursor.execute("UPDATE events SET status = ? WHERE id = ?", ('closed', event_id))
-
         conn.commit()
 
         if cursor.rowcount > 0:
@@ -364,6 +381,7 @@ def get_registered_events():
             }
             for event in events
         ]
+        print("Event created successfully", result)
 
         return jsonify(result), 200
     except pyodbc.Error as e:
